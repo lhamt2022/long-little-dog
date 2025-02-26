@@ -1,0 +1,68 @@
+#include <CytronMotorDriver.h>
+
+// LEFT MOTOR ENCODER PINS
+#define EncA1 19
+#define EncB1 18
+
+// RIGHT MOTOR ENCODER PINS
+#define EncA2 35
+#define EncB2 34
+
+// Motor driver setup
+CytronMD motor1(PWM_PWM, 15, 2);   // LEFT MOTOR: PWM1 = Pin 15, PWM2 = Pin 2
+CytronMD motor2(PWM_PWM, 27, 26);  // RIGHT MOTOR: PWM1 = Pin 27, PWM2 = Pin 26
+
+// Encoder pulse counters
+volatile int leftEncoderCount = 0;
+volatile int rightEncoderCount = 0;
+
+// Interrupt service routines for encoders
+void IRAM_ATTR countLeftEncoder() {
+    leftEncoderCount++;
+}
+
+void IRAM_ATTR countRightEncoder() {
+    rightEncoderCount++;
+}
+
+void setup() {
+    Serial.begin(115200);
+
+    // Configure encoder pins as input
+    pinMode(EncA1, INPUT);
+    pinMode(EncB1, INPUT);
+    pinMode(EncA2, INPUT);
+    pinMode(EncB2, INPUT);
+
+    // Attach interrupts to encoder A channels
+    attachInterrupt(digitalPinToInterrupt(EncA1), countLeftEncoder, RISING);
+    attachInterrupt(digitalPinToInterrupt(EncA2), countRightEncoder, RISING);
+}
+
+void loop() {
+    // Print encoder counts
+    Serial.print("Left Encoder: ");
+    Serial.print(leftEncoderCount);
+    Serial.print(" | Right Encoder: ");
+    Serial.println(rightEncoderCount);
+
+    // Move motors forward
+    motor1.setSpeed(150);  // Forward at 60% speed
+    motor2.setSpeed(150);  // Forward at 60% speed
+    delay(5000);
+
+    // Stop motors
+    motor1.setSpeed(0);
+    motor2.setSpeed(0);
+    delay(2000);
+
+    // Move motors backward
+    motor1.setSpeed(-150);
+    motor2.setSpeed(-150);
+    delay(5000);
+
+    // Stop motors
+    motor1.setSpeed(0);
+    motor2.setSpeed(0);
+    delay(2000);
+}
